@@ -71,10 +71,17 @@ public class Position {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private Boolean active = true;
+
     @PrePersist
     void onCreate() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (active == null) {
+            active = true;
         }
     }
 }

@@ -89,6 +89,9 @@ public class PositionHealthSnapshot {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "primary_recommendation", length = 30)
+    private String primaryRecommendation;
+
     @PrePersist
     void onCreate() {
         if (createdAt == null) {

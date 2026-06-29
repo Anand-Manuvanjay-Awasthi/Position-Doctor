@@ -31,4 +31,6 @@ public class PositionHealthSnapshotResponse {
     FluctuationLevel fluctuationLevel;
 
     LocalDateTime createdAt;
+
+    String primaryRecommendation;
 }

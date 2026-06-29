@@ -9,6 +9,14 @@ import org.springframework.stereotype.Component;
 public class PositionHealthSnapshotMapper {
 
     public PositionHealthSnapshot toEntity(Long positionId, PositionHealthReport report) {
+        return toEntity(positionId, report, null);
+    }
+
+    public PositionHealthSnapshot toEntity(
+            Long positionId,
+            PositionHealthReport report,
+            String primaryRecommendation
+    ) {
         return PositionHealthSnapshot.builder()
                 .positionId(positionId)
                 .healthScore(report.getHealthScore())
@@ -18,6 +26,7 @@ public class PositionHealthSnapshotMapper {
                 .healthStatus(report.getHealthStatus())
                 .riskLevel(report.getRiskLevel())
                 .fluctuationLevel(report.getFluctuationLevel())
+                .primaryRecommendation(primaryRecommendation)
                 .build();
     }
 
@@ -33,6 +42,7 @@ public class PositionHealthSnapshotMapper {
                 .riskLevel(snapshot.getRiskLevel())
                 .fluctuationLevel(snapshot.getFluctuationLevel())
                 .createdAt(snapshot.getCreatedAt())
+                .primaryRecommendation(snapshot.getPrimaryRecommendation())
                 .build();
     }
 }
