@@ -21,6 +21,8 @@ public class RecommendationResponse {
 
     String rationale;
 
+    RecommendationExplanation explanation;
+
     StrengthLevel fundamentalStrength;
 
     int healthScore;
