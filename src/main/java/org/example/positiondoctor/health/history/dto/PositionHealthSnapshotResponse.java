@@ -33,4 +33,6 @@ public class PositionHealthSnapshotResponse {
     LocalDateTime createdAt;
 
     String primaryRecommendation;
+
+    Integer recommendationConfidence;
 }

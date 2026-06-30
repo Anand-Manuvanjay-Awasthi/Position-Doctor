@@ -92,6 +92,11 @@ public class PositionHealthSnapshot {
     @Column(name = "primary_recommendation", length = 30)
     private String primaryRecommendation;
 
+    @Min(0)
+    @Max(100)
+    @Column(name = "recommendation_confidence")
+    private Integer recommendationConfidence;
+
     @PrePersist
     void onCreate() {
         if (createdAt == null) {

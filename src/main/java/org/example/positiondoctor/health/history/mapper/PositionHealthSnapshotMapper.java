@@ -17,6 +17,15 @@ public class PositionHealthSnapshotMapper {
             PositionHealthReport report,
             String primaryRecommendation
     ) {
+        return toEntity(positionId, report, primaryRecommendation, null);
+    }
+
+    public PositionHealthSnapshot toEntity(
+            Long positionId,
+            PositionHealthReport report,
+            String primaryRecommendation,
+            Integer recommendationConfidence
+    ) {
         return PositionHealthSnapshot.builder()
                 .positionId(positionId)
                 .healthScore(report.getHealthScore())
@@ -27,6 +36,7 @@ public class PositionHealthSnapshotMapper {
                 .riskLevel(report.getRiskLevel())
                 .fluctuationLevel(report.getFluctuationLevel())
                 .primaryRecommendation(primaryRecommendation)
+                .recommendationConfidence(recommendationConfidence)
                 .build();
     }
 
@@ -43,6 +53,7 @@ public class PositionHealthSnapshotMapper {
                 .fluctuationLevel(snapshot.getFluctuationLevel())
                 .createdAt(snapshot.getCreatedAt())
                 .primaryRecommendation(snapshot.getPrimaryRecommendation())
+                .recommendationConfidence(snapshot.getRecommendationConfidence())
                 .build();
     }
 }

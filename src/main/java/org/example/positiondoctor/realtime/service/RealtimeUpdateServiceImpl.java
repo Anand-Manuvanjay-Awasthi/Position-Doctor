@@ -67,7 +67,8 @@ public class RealtimeUpdateServiceImpl implements RealtimeUpdateService {
         healthHistoryService.saveSnapshot(
                 position.getId(),
                 healthReport,
-                recommendation.getPrimaryRecommendation().name()
+                recommendation.getPrimaryRecommendation().name(),
+                recommendation.getConfidence()
         );
         createAlertIfPrimaryRecommendationChanged(position, previousSnapshot, recommendation);
     }

@@ -33,10 +33,25 @@ public class HealthHistoryServiceImpl implements HealthHistoryService {
             PositionHealthReport report,
             String primaryRecommendation
     ) {
+        return saveSnapshot(positionId, report, primaryRecommendation, null);
+    }
+
+    @Override
+    public PositionHealthSnapshotResponse saveSnapshot(
+            Long positionId,
+            PositionHealthReport report,
+            String primaryRecommendation,
+            Integer recommendationConfidence
+    ) {
         Objects.requireNonNull(positionId, "position id must not be null");
         Objects.requireNonNull(report, "position health report must not be null");
 
-        PositionHealthSnapshot snapshot = snapshotMapper.toEntity(positionId, report, primaryRecommendation);
+        PositionHealthSnapshot snapshot = snapshotMapper.toEntity(
+                positionId,
+                report,
+                primaryRecommendation,
+                recommendationConfidence
+        );
         PositionHealthSnapshot savedSnapshot = snapshotRepository.save(snapshot);
 
         return snapshotMapper.toResponse(savedSnapshot);

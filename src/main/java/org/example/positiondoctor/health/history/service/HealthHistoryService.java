@@ -16,6 +16,13 @@ public interface HealthHistoryService {
             String primaryRecommendation
     );
 
+    PositionHealthSnapshotResponse saveSnapshot(
+            Long positionId,
+            PositionHealthReport report,
+            String primaryRecommendation,
+            Integer recommendationConfidence
+    );
+
     PositionHealthSnapshotResponse getLatestSnapshot(Long positionId);
 
     Optional<PositionHealthSnapshotResponse> findLatestSnapshot(Long positionId);
