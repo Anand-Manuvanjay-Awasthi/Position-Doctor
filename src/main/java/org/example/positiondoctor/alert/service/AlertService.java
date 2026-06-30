@@ -1,14 +1,23 @@
 package org.example.positiondoctor.alert.service;
 
-import org.example.positiondoctor.alert.entity.Alert;
+import org.example.positiondoctor.alert.dto.AlertResponse;
 import org.example.positiondoctor.recommendation.enums.PrimaryRecommendation;
+
+import java.util.List;
+import java.util.Optional;
 
 public interface AlertService {
 
-    Alert createRecommendationChangedAlert(
+    Optional<AlertResponse> createAlert(
             Long positionId,
+            String stockSymbol,
             PrimaryRecommendation previousRecommendation,
-            PrimaryRecommendation currentRecommendation,
-            String rationale
+            PrimaryRecommendation currentRecommendation
     );
+
+    List<AlertResponse> getAllAlerts();
+
+    List<AlertResponse> getUnreadAlerts();
+
+    AlertResponse markAsRead(Long id);
 }

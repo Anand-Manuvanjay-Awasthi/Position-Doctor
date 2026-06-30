@@ -12,10 +12,8 @@ import org.example.positiondoctor.health.history.service.HealthHistoryService;
 import org.example.positiondoctor.health.service.HealthScoreService;
 import org.example.positiondoctor.marketcontext.dto.MarketContextReport;
 import org.example.positiondoctor.marketcontext.service.MarketContextService;
-import org.example.positiondoctor.recommendation.dto.RecommendationExplanation;
 import org.example.positiondoctor.recommendation.dto.RecommendationResponse;
 import org.example.positiondoctor.recommendation.enums.PrimaryRecommendation;
-import org.example.positiondoctor.recommendation.explanation.RecommendationExplanationGenerator;
 import org.example.positiondoctor.recommendation.service.RecommendationEngineService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +33,6 @@ public class RealtimeUpdateServiceImpl implements RealtimeUpdateService {
     private final MarketContextService marketContextService;
     private final FundamentalStrengthService fundamentalStrengthService;
     private final RecommendationEngineService recommendationEngineService;
-    private final RecommendationExplanationGenerator recommendationExplanationGenerator;
     private final HealthHistoryService healthHistoryService;
     private final AlertService alertService;
 
@@ -66,40 +63,26 @@ public class RealtimeUpdateServiceImpl implements RealtimeUpdateService {
                 marketContextReport,
                 fundamentalStrengthReport
         );
-        RecommendationExplanation explanation = generateExplanation(recommendation, fundamentalStrengthReport);
 
         healthHistoryService.saveSnapshot(
                 position.getId(),
                 healthReport,
                 recommendation.getPrimaryRecommendation().name()
         );
-        createAlertIfPrimaryRecommendationChanged(position, previousSnapshot, recommendation, explanation);
-    }
-
-    private RecommendationExplanation generateExplanation(
-            RecommendationResponse recommendation,
-            FundamentalStrengthReport fundamentalStrengthReport
-    ) {
-        return recommendationExplanationGenerator.generateExplanation(
-                recommendation.getPrimaryRecommendation(),
-                recommendation.getSecondaryRecommendations(),
-                fundamentalStrengthReport.getStrengthLevel()
-        );
+        createAlertIfPrimaryRecommendationChanged(position, previousSnapshot, recommendation);
     }
 
     private void createAlertIfPrimaryRecommendationChanged(
             Position position,
             Optional<PositionHealthSnapshotResponse> previousSnapshot,
-            RecommendationResponse recommendation,
-            RecommendationExplanation explanation
+            RecommendationResponse recommendation
     ) {
         previousPrimaryRecommendation(previousSnapshot)
                 .filter(previousRecommendation -> previousRecommendation != recommendation.getPrimaryRecommendation())
                 .ifPresent(previousRecommendation -> createRecommendationAlert(
                         position,
                         previousRecommendation,
-                        recommendation.getPrimaryRecommendation(),
-                        explanation
+                        recommendation.getPrimaryRecommendation()
                 ));
     }
 
@@ -124,14 +107,13 @@ public class RealtimeUpdateServiceImpl implements RealtimeUpdateService {
     private void createRecommendationAlert(
             Position position,
             PrimaryRecommendation previousRecommendation,
-            PrimaryRecommendation currentRecommendation,
-            RecommendationExplanation explanation
+            PrimaryRecommendation currentRecommendation
     ) {
-        alertService.createRecommendationChangedAlert(
+        alertService.createAlert(
                 position.getId(),
+                position.getStockSymbol(),
                 previousRecommendation,
-                currentRecommendation,
-                explanation.getRecommendationRationale()
+                currentRecommendation
         );
     }
 }

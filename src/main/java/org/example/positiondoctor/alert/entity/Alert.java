@@ -10,6 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,23 +41,33 @@ public class Alert {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
     @Column(name = "position_id", nullable = false)
     private Long positionId;
 
+    @NotBlank
+    @Size(max = 20)
+    @Column(name = "stock_symbol", nullable = false, length = 20)
+    private String stockSymbol;
+
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "previous_recommendation", nullable = false, length = 30)
     private PrimaryRecommendation previousRecommendation;
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "current_recommendation", nullable = false, length = 30)
     private PrimaryRecommendation currentRecommendation;
 
+    @NotBlank
+    @Size(max = 500)
     @Column(nullable = false, length = 500)
     private String message;
 
     @Builder.Default
-    @Column(nullable = false)
-    private Boolean acknowledged = false;
+    @Column(name = "is_read", nullable = false)
+    private Boolean isRead = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -64,8 +77,8 @@ public class Alert {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
-        if (acknowledged == null) {
-            acknowledged = false;
+        if (isRead == null) {
+            isRead = false;
         }
     }
 }
