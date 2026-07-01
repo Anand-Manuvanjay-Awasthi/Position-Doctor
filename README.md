@@ -83,7 +83,8 @@ ENGINEERING_JOURNAL.md
 
 ## Architecture Diagram
 
-![Position Doctor Backend Architecture](Position Doctor architecture.png)
+<img width="1312" height="1229" alt="image" src="https://github.com/user-attachments/assets/0d2edc58-828c-41a4-a0f6-3d1ea8720e66" />
+
 
 Diagram placeholder:
 
