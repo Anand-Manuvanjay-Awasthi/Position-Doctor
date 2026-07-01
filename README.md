@@ -57,7 +57,7 @@ Implemented backend modules:
 | Alert Engine | Done | Persists recommendation-change alerts |
 | Daily Portfolio Digest | Done | Dashboard summary using latest persisted data |
 
-Not implemented by design:
+Future enhancements :
 
 - Authentication
 - External market data providers
@@ -73,28 +73,15 @@ Not implemented by design:
 
 This project has an engineering journal that explains the decisions, tradeoffs, and reasoning behind the backend design.
 
-Place the journal here:
-
 ```text
-docs/engineering-journal.md
+ENGINEERING_JOURNAL.md
 ```
 
 Recommended README link once the document is added:
 
 ```markdown
-[Read the Engineering Journal](docs/engineering-journal.md)
+[Read the Engineering Journal](ENGINEERING_JOURNAL.md)
 ```
-
-Journal placeholder:
-
-> Add the engineering journal here. Good sections to include:
->
-> - Why the backend was split into modules
-> - Why the Recommendation Engine is a rule engine
-> - Why Health, Market Context, and Fundamentals are separate
-> - Why realtime updates are simulated with scheduling
-> - What was intentionally left out for the hackathon
-> - What should be improved before production
 
 ---
 
@@ -103,13 +90,13 @@ Journal placeholder:
 The final architecture diagram should live here:
 
 ```text
-docs/architecture/position-doctor-backend-architecture.png
+Position Doctor architecture.png
 ```
 
 Recommended README embed once the diagram is ready:
 
 ```markdown
-![Position Doctor Backend Architecture](docs/architecture/position-doctor-backend-architecture.png)
+![Position Doctor Backend Architecture](Position Doctor architecture.png)
 ```
 
 Diagram placeholder:
@@ -370,7 +357,7 @@ Important classes:
 - `HealthConstraintProcessor`
 
 Hard constraints are intentionally isolated in `HealthConstraintProcessor`.
-
+More about the Health engine in this link : https://docs.google.com/document/d/17hykGhIfxSPzbseLS-hrfQCr0vJp8vPPE0efQv1EOzg/edit?usp=sharing
 ---
 
 ### 3. Health History
