@@ -77,27 +77,13 @@ This project has an engineering journal that explains the decisions, tradeoffs, 
 ENGINEERING_JOURNAL.md
 ```
 
-Recommended README link once the document is added:
-
-```markdown
 [Read the Engineering Journal](ENGINEERING_JOURNAL.md)
-```
 
 ---
 
 ## Architecture Diagram
 
-The final architecture diagram should live here:
-
-```text
-Position Doctor architecture.png
-```
-
-Recommended README embed once the diagram is ready:
-
-```markdown
 ![Position Doctor Backend Architecture](Position Doctor architecture.png)
-```
 
 Diagram placeholder:
 
