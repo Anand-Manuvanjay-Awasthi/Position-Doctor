@@ -1,21 +1,53 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import AlertTable from "../components/AlertTable"
 import StatCard from "../components/StatCard"
-import { alertRows } from "../data/dashboardData"
+import { getAlerts, markAlertAsRead } from "../services/alertService"
 import type { AlertRow } from "../types"
 
 export default function AlertsPage() {
-  const [alerts, setAlerts] = useState<AlertRow[]>(alertRows)
+  const [alerts, setAlerts] = useState<AlertRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError(null)
+
+    getAlerts()
+      .then((data) => {
+        if (active) setAlerts(data)
+      })
+      .catch(() => {
+        if (active) setError("Unable to load alerts. Please try again later.")
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const unreadCount = useMemo(
     () => alerts.filter((a) => a.status === "UNREAD").length,
     [alerts],
   )
 
-  function markAsRead(id: string) {
+  async function markAsRead(id: string) {
+    // Optimistically update the UI, then persist to the backend.
     setAlerts((prev) =>
       prev.map((a) => (a.id === id ? { ...a, status: "READ" } : a)),
     )
+    try {
+      await markAlertAsRead(id)
+    } catch {
+      // Revert on failure so the UI stays in sync with the server.
+      setAlerts((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: "UNREAD" } : a)),
+      )
+    }
   }
 
   return (
@@ -30,7 +62,15 @@ export default function AlertsPage() {
         <StatCard label="Unread Alerts" value={unreadCount} />
       </div>
 
-      <AlertTable alerts={alerts} onMarkAsRead={markAsRead} />
+      {loading && <p className="text-sm text-slate-500">Loading alerts...</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {!loading && !error && alerts.length === 0 && (
+        <p className="text-sm text-slate-500">No alerts to show right now.</p>
+      )}
+
+      {!loading && !error && alerts.length > 0 && (
+        <AlertTable alerts={alerts} onMarkAsRead={markAsRead} />
+      )}
     </section>
   )
 }

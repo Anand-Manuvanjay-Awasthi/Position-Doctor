@@ -1,10 +1,34 @@
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import DigestCard from "../components/DigestCard"
 import SummaryTable from "../components/SummaryTable"
-import { digestSummaryRows } from "../data/dashboardData"
+import { getDigest } from "../services/digestService"
+import type { DigestSummaryRow } from "../types"
 
 export default function DigestPage() {
-  const rows = digestSummaryRows
+  const [rows, setRows] = useState<DigestSummaryRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError(null)
+
+    getDigest()
+      .then((data) => {
+        if (active) setRows(data)
+      })
+      .catch(() => {
+        if (active) setError("Unable to load the digest. Please try again later.")
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const stats = useMemo(() => {
     const scores = rows.map((r) => r.healthScore)
@@ -33,21 +57,33 @@ export default function DigestPage() {
         A summary of your portfolio health and today&apos;s key recommendations.
       </p>
 
-      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <DigestCard label="Total Positions" value={stats.total} />
-        <DigestCard label="Healthy Positions" value={stats.healthy} tone="green" />
-        <DigestCard label="Watch Closely" value={stats.watch} tone="slate" />
-        <DigestCard label="Reduce Position" value={stats.reduce} tone="amber" />
-        <DigestCard label="Consider Exit" value={stats.exit} tone="red" />
-        <DigestCard label="Average Health Score" value={stats.average} />
-        <DigestCard label="Highest Health Score" value={stats.highest} tone="green" />
-        <DigestCard label="Lowest Health Score" value={stats.lowest} tone="red" />
-      </div>
+      {loading && <p className="text-sm text-slate-500">Loading digest...</p>}
+      {error && <p className="text-sm text-red-600">{error}</p>}
+      {!loading && !error && rows.length === 0 && (
+        <p className="text-sm text-slate-500">
+          No digest data available right now.
+        </p>
+      )}
 
-      <h2 className="mb-3 text-lg font-semibold text-slate-900">
-        Portfolio Summary
-      </h2>
-      <SummaryTable rows={rows} />
+      {!loading && !error && rows.length > 0 && (
+        <>
+          <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <DigestCard label="Total Positions" value={stats.total} />
+            <DigestCard label="Healthy Positions" value={stats.healthy} tone="green" />
+            <DigestCard label="Watch Closely" value={stats.watch} tone="slate" />
+            <DigestCard label="Reduce Position" value={stats.reduce} tone="amber" />
+            <DigestCard label="Consider Exit" value={stats.exit} tone="red" />
+            <DigestCard label="Average Health Score" value={stats.average} />
+            <DigestCard label="Highest Health Score" value={stats.highest} tone="green" />
+            <DigestCard label="Lowest Health Score" value={stats.lowest} tone="red" />
+          </div>
+
+          <h2 className="mb-3 text-lg font-semibold text-slate-900">
+            Portfolio Summary
+          </h2>
+          <SummaryTable rows={rows} />
+        </>
+      )}
     </section>
   )
 }
