@@ -1,4 +1,6 @@
-import { getAlerts, getDigest, getPositions } from "../services/positionService"
+import { getAlerts } from "../services/alertService"
+import { getDigest } from "../services/digestService"
+import { getPositions } from "../services/positionService"
 import { useAsync } from "./useAsync"
 
 export function usePositions() {

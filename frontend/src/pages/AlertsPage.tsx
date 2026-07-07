@@ -1,17 +1,54 @@
-import { SeverityBadge } from "../components/Badge"
-import { useAlerts } from "../hooks/usePortfolio"
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
+import { useEffect, useMemo, useState } from "react"
+import AlertTable from "../components/AlertTable"
+import StatCard from "../components/StatCard"
+import { getAlerts, markAlertAsRead } from "../services/alertService"
+import type { AlertRow } from "../types"
 
 export default function AlertsPage() {
-  const { data: alerts, loading, error } = useAlerts()
+  const [alerts, setAlerts] = useState<AlertRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setError(null)
+
+    getAlerts()
+      .then((data) => {
+        if (active) setAlerts(data)
+      })
+      .catch(() => {
+        if (active) setError("Unable to load alerts. Please try again later.")
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const unreadCount = useMemo(
+    () => alerts.filter((a) => a.status === "UNREAD").length,
+    [alerts],
+  )
+
+  async function markAsRead(id: string) {
+    // Optimistically update the UI, then persist to the backend.
+    setAlerts((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status: "READ" } : a)),
+    )
+    try {
+      await markAlertAsRead(id)
+    } catch {
+      // Revert on failure so the UI stays in sync with the server.
+      setAlerts((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: "UNREAD" } : a)),
+      )
+    }
+  }
 
   return (
     <section>
@@ -20,29 +57,19 @@ export default function AlertsPage() {
         Notifications triggered by changes in your positions.
       </p>
 
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:max-w-md">
+        <StatCard label="Total Alerts" value={alerts.length} />
+        <StatCard label="Unread Alerts" value={unreadCount} />
+      </div>
+
       {loading && <p className="text-sm text-slate-500">Loading alerts...</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
+      {!loading && !error && alerts.length === 0 && (
+        <p className="text-sm text-slate-500">No alerts to show right now.</p>
+      )}
 
-      {alerts && (
-        <ul className="space-y-3">
-          {alerts.map((alert) => (
-            <li
-              key={alert.id}
-              className="rounded-lg border border-slate-200 bg-white p-4"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-semibold text-slate-900">
-                  {alert.ticker}
-                </span>
-                <SeverityBadge value={alert.severity} />
-              </div>
-              <p className="mt-1 text-sm text-slate-700">{alert.message}</p>
-              <p className="mt-2 text-xs text-slate-400">
-                {formatDate(alert.createdAt)}
-              </p>
-            </li>
-          ))}
-        </ul>
+      {!loading && !error && alerts.length > 0 && (
+        <AlertTable alerts={alerts} onMarkAsRead={markAsRead} />
       )}
     </section>
   )
