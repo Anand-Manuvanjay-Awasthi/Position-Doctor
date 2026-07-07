@@ -1,73 +1,53 @@
-import { RecommendationBadge } from "../components/Badge"
-import { useDigest } from "../hooks/usePortfolio"
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 text-center">
-      <div className="text-2xl font-bold text-slate-900">{value}</div>
-      <div className="text-xs uppercase tracking-wide text-slate-500">
-        {label}
-      </div>
-    </div>
-  )
-}
+import { useMemo } from "react"
+import DigestCard from "../components/DigestCard"
+import SummaryTable from "../components/SummaryTable"
+import { digestSummaryRows } from "../data/dashboardData"
 
 export default function DigestPage() {
-  const { data: digest, loading, error } = useDigest()
+  const rows = digestSummaryRows
+
+  const stats = useMemo(() => {
+    const scores = rows.map((r) => r.healthScore)
+    const total = rows.length
+    const average = total
+      ? Math.round(scores.reduce((sum, s) => sum + s, 0) / total)
+      : 0
+    return {
+      total,
+      healthy: rows.filter((r) => r.healthScore >= 75).length,
+      watch: rows.filter((r) => r.recommendation === "WATCH").length,
+      reduce: rows.filter((r) => r.recommendation === "REDUCE").length,
+      exit: rows.filter((r) => r.recommendation === "EXIT").length,
+      average,
+      highest: total ? Math.max(...scores) : 0,
+      lowest: total ? Math.min(...scores) : 0,
+    }
+  }, [rows])
 
   return (
     <section>
-      <h1 className="mb-1 text-2xl font-bold text-slate-900">Daily Digest</h1>
+      <h1 className="mb-1 text-2xl font-bold text-slate-900">
+        Daily Portfolio Digest
+      </h1>
       <p className="mb-6 text-sm text-slate-500">
-        A summary of your portfolio and today&apos;s key recommendations.
+        A summary of your portfolio health and today&apos;s key recommendations.
       </p>
 
-      {loading && <p className="text-sm text-slate-500">Loading digest...</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <DigestCard label="Total Positions" value={stats.total} />
+        <DigestCard label="Healthy Positions" value={stats.healthy} tone="green" />
+        <DigestCard label="Watch Closely" value={stats.watch} tone="slate" />
+        <DigestCard label="Reduce Position" value={stats.reduce} tone="amber" />
+        <DigestCard label="Consider Exit" value={stats.exit} tone="red" />
+        <DigestCard label="Average Health Score" value={stats.average} />
+        <DigestCard label="Highest Health Score" value={stats.highest} tone="green" />
+        <DigestCard label="Lowest Health Score" value={stats.lowest} tone="red" />
+      </div>
 
-      {digest && (
-        <div className="space-y-6">
-          <div className="rounded-lg border border-slate-200 bg-white p-5">
-            <p className="text-xs uppercase tracking-wide text-slate-400">
-              {digest.date}
-            </p>
-            <p className="mt-2 text-slate-700">{digest.overview}</p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <Stat label="Positions" value={digest.totalPositions} />
-            <Stat label="Healthy" value={digest.healthyCount} />
-            <Stat label="At Risk" value={digest.atRiskCount} />
-          </div>
-
-          <div>
-            <h2 className="mb-3 text-lg font-semibold text-slate-900">
-              Highlights
-            </h2>
-            <ul className="space-y-3">
-              {digest.items.map((item) => (
-                <li
-                  key={item.ticker}
-                  className="rounded-lg border border-slate-200 bg-white p-4"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <span className="font-semibold text-slate-900">
-                        {item.stockName}
-                      </span>
-                      <span className="ml-2 text-xs text-slate-500">
-                        {item.ticker}
-                      </span>
-                    </div>
-                    <RecommendationBadge value={item.recommendation} />
-                  </div>
-                  <p className="mt-1 text-sm text-slate-700">{item.summary}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
+      <h2 className="mb-3 text-lg font-semibold text-slate-900">
+        Portfolio Summary
+      </h2>
+      <SummaryTable rows={rows} />
     </section>
   )
 }

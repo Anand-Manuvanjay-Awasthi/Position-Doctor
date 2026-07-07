@@ -96,3 +96,23 @@ export interface PortfolioDigest {
   atRiskCount: number
   items: DigestItem[]
 }
+
+export type AlertStatus = "READ" | "UNREAD"
+
+export interface AlertRow {
+  id: string
+  symbol: string
+  previousRecommendation: Recommendation
+  currentRecommendation: Recommendation
+  message: string
+  timestamp: string
+  status: AlertStatus
+}
+
+export interface DigestSummaryRow {
+  stock: string
+  ticker: string
+  healthScore: number
+  recommendation: Recommendation
+  confidence: number
+}

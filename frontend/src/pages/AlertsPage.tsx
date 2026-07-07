@@ -1,17 +1,22 @@
-import { SeverityBadge } from "../components/Badge"
-import { useAlerts } from "../hooks/usePortfolio"
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
+import { useMemo, useState } from "react"
+import AlertTable from "../components/AlertTable"
+import StatCard from "../components/StatCard"
+import { alertRows } from "../data/dashboardData"
+import type { AlertRow } from "../types"
 
 export default function AlertsPage() {
-  const { data: alerts, loading, error } = useAlerts()
+  const [alerts, setAlerts] = useState<AlertRow[]>(alertRows)
+
+  const unreadCount = useMemo(
+    () => alerts.filter((a) => a.status === "UNREAD").length,
+    [alerts],
+  )
+
+  function markAsRead(id: string) {
+    setAlerts((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, status: "READ" } : a)),
+    )
+  }
 
   return (
     <section>
@@ -20,30 +25,12 @@ export default function AlertsPage() {
         Notifications triggered by changes in your positions.
       </p>
 
-      {loading && <p className="text-sm text-slate-500">Loading alerts...</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:max-w-md">
+        <StatCard label="Total Alerts" value={alerts.length} />
+        <StatCard label="Unread Alerts" value={unreadCount} />
+      </div>
 
-      {alerts && (
-        <ul className="space-y-3">
-          {alerts.map((alert) => (
-            <li
-              key={alert.id}
-              className="rounded-lg border border-slate-200 bg-white p-4"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className="font-semibold text-slate-900">
-                  {alert.ticker}
-                </span>
-                <SeverityBadge value={alert.severity} />
-              </div>
-              <p className="mt-1 text-sm text-slate-700">{alert.message}</p>
-              <p className="mt-2 text-xs text-slate-400">
-                {formatDate(alert.createdAt)}
-              </p>
-            </li>
-          ))}
-        </ul>
-      )}
+      <AlertTable alerts={alerts} onMarkAsRead={markAsRead} />
     </section>
   )
 }
