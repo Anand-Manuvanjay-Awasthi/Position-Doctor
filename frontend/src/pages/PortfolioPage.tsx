@@ -1,13 +1,9 @@
-import { useState } from "react"
 import { Link } from "react-router-dom"
 import PositionTable from "../components/PositionTable"
-import PositionDetailsModal from "../components/PositionDetailsModal"
 import { usePositions } from "../hooks/usePortfolio"
-import type { Position } from "../types"
 
 export default function PortfolioPage() {
   const { data: positions, loading, error } = usePositions()
-  const [selected, setSelected] = useState<Position | null>(null)
 
   return (
     <section>
@@ -29,14 +25,7 @@ export default function PortfolioPage() {
       {loading && <p className="text-sm text-slate-500">Loading positions...</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
 
-      {positions && (
-        <PositionTable positions={positions} onViewDetails={setSelected} />
-      )}
-
-      <PositionDetailsModal
-        position={selected}
-        onClose={() => setSelected(null)}
-      />
+      {positions && <PositionTable positions={positions} />}
     </section>
   )
 }

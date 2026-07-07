@@ -1,9 +1,9 @@
+import { Link } from "react-router-dom"
 import type { Position } from "../types"
 import { RecommendationBadge } from "./Badge"
 
 interface Props {
   positions: Position[]
-  onViewDetails: (position: Position) => void
 }
 
 function scoreColor(score: number) {
@@ -12,7 +12,7 @@ function scoreColor(score: number) {
   return "text-red-700"
 }
 
-export default function PositionTable({ positions, onViewDetails }: Props) {
+export default function PositionTable({ positions }: Props) {
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
       <table className="w-full min-w-[640px] text-left text-sm">
@@ -45,13 +45,12 @@ export default function PositionTable({ positions, onViewDetails }: Props) {
                 {Math.round(position.confidence * 100)}%
               </td>
               <td className="px-4 py-3 text-right">
-                <button
-                  type="button"
-                  onClick={() => onViewDetails(position)}
-                  className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                <Link
+                  to={`/positions/${position.id}`}
+                  className="inline-block rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100"
                 >
                   View Details
-                </button>
+                </Link>
               </td>
             </tr>
           ))}
