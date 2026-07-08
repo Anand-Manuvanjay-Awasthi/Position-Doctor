@@ -2,6 +2,7 @@ package org.example.positiondoctor.health.mapper;
 
 import org.example.positiondoctor.entities.Position;
 import org.example.positiondoctor.health.dto.PositionHealthRequest;
+import org.example.positiondoctor.health.enums.Trend;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -17,13 +18,24 @@ public class PositionHealthRequestMapper {
     private static final BigDecimal DEFAULT_VOLATILITY_PERCENTAGE = BigDecimal.TEN;
 
     public PositionHealthRequest toHealthRequest(Position position) {
+        return toHealthRequest(position, null);
+    }
+
+    public PositionHealthRequest toHealthRequest(Position position, Trend trend) {
         return PositionHealthRequest.builder()
                 .buyPrice(position.getBuyPrice())
                 .currentPrice(position.getCurrentPrice())
                 .targetPrice(position.getTargetPrice())
                 .stopLoss(position.getStopLoss())
-                .trendPercentage(NEUTRAL_TREND_PERCENTAGE)
+                .trendPercentage(toTrendPercentage(trend))
                 .volatilityPercentage(DEFAULT_VOLATILITY_PERCENTAGE)
                 .build();
+    }
+
+    private BigDecimal toTrendPercentage(Trend trend) {
+        if (trend == null) {
+            return NEUTRAL_TREND_PERCENTAGE;
+        }
+        return trend.toPercentage();
     }
 }

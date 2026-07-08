@@ -2,8 +2,9 @@ package org.example.positiondoctor.Controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.positiondoctor.DTO.PositionRequest;
+import org.example.positiondoctor.DTO.CreatePositionRequest;
 import org.example.positiondoctor.DTO.PositionResponse;
+import org.example.positiondoctor.Service.PositionFacadeService;
 import org.example.positiondoctor.Service.PositionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +23,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PositionController {
 
+    private final PositionFacadeService positionFacadeService;
     private final PositionService positionService;
 
     @PostMapping
-    public ResponseEntity<PositionResponse> createPosition(@Valid @RequestBody PositionRequest request) {
-        PositionResponse response = positionService.createPosition(request);
+    public ResponseEntity<PositionResponse> createPosition(@Valid @RequestBody CreatePositionRequest request) {
+        PositionResponse response = positionFacadeService.createPosition(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
