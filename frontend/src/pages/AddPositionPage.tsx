@@ -73,6 +73,8 @@ export default function AddPositionPage() {
   const [form, setForm] = useState<NewPosition>(emptyForm)
   const [errors, setErrors] = useState<Errors>({})
   const [submitted, setSubmitted] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   function update<K extends keyof NewPosition>(name: K, value: NewPosition[K]) {
     setForm((prev) => ({ ...prev, [name]: value }))
@@ -88,14 +90,25 @@ export default function AddPositionPage() {
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
-    await createPosition(form)
-    setSubmitted(true)
+    setSubmitError(null)
+    setSaving(true)
+    try {
+      await createPosition(form)
+      setSubmitted(true)
+    } catch {
+      setSubmitError(
+        "Unable to reach the backend. Make sure the API is running and reachable at the configured VITE_API_BASE_URL.",
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   function handleReset() {
     setForm(emptyForm)
     setErrors({})
     setSubmitted(false)
+    setSubmitError(null)
   }
 
   if (submitted) {
@@ -234,12 +247,19 @@ export default function AddPositionPage() {
           </label>
         </div>
 
+        {submitError && (
+          <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {submitError}
+          </div>
+        )}
+
         <div className="mt-6 flex gap-3">
           <button
             type="submit"
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            disabled={saving}
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Save Position
+            {saving ? "Saving..." : "Save Position"}
           </button>
           <button
             type="button"
