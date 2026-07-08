@@ -31,21 +31,21 @@ export default function AlertsPage() {
   }, [])
 
   const unreadCount = useMemo(
-    () => alerts.filter((a) => a.status === "UNREAD").length,
+    () => alerts.filter((a) => !a.isRead).length,
     [alerts],
   )
 
-  async function markAsRead(id: string) {
+  async function markAsRead(id: number) {
     // Optimistically update the UI, then persist to the backend.
     setAlerts((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, status: "READ" } : a)),
+      prev.map((a) => (a.id === id ? { ...a, isRead: true } : a)),
     )
     try {
       await markAlertAsRead(id)
     } catch {
       // Revert on failure so the UI stays in sync with the server.
       setAlerts((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: "UNREAD" } : a)),
+        prev.map((a) => (a.id === id ? { ...a, isRead: false } : a)),
       )
     }
   }

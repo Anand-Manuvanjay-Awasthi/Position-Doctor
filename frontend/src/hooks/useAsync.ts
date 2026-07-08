@@ -8,7 +8,7 @@ interface AsyncState<T> {
 
 /**
  * Small helper hook to run an async loader and track loading / error state.
- * Used by pages to load dummy data from the service layer.
+ * Used by pages to load API data from the service layer.
  */
 export function useAsync<T>(loader: () => Promise<T>, deps: unknown[] = []) {
   const [state, setState] = useState<AsyncState<T>>({

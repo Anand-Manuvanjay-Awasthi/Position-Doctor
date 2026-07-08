@@ -3,7 +3,7 @@ import { RecommendationBadge } from "./Badge"
 
 interface Props {
   alerts: AlertRow[]
-  onMarkAsRead: (id: string) => void
+  onMarkAsRead: (id: number) => void
 }
 
 function formatTimestamp(iso: string) {
@@ -34,7 +34,7 @@ export default function AlertTable({ alerts, onMarkAsRead }: Props) {
           {alerts.map((alert) => (
             <tr key={alert.id} className="hover:bg-slate-50">
               <td className="px-4 py-3 font-medium text-slate-900">
-                {alert.symbol}
+                {alert.stockSymbol}
               </td>
               <td className="px-4 py-3">
                 <RecommendationBadge value={alert.previousRecommendation} />
@@ -44,23 +44,23 @@ export default function AlertTable({ alerts, onMarkAsRead }: Props) {
               </td>
               <td className="px-4 py-3 text-slate-700">{alert.message}</td>
               <td className="px-4 py-3 whitespace-nowrap text-slate-500">
-                {formatTimestamp(alert.timestamp)}
+                {formatTimestamp(alert.createdAt)}
               </td>
               <td className="px-4 py-3">
                 <span
                   className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    alert.status === "UNREAD"
+                    !alert.isRead
                       ? "bg-blue-100 text-blue-800"
                       : "bg-slate-100 text-slate-600"
                   }`}
                 >
-                  {alert.status === "UNREAD" ? "Unread" : "Read"}
+                  {alert.isRead ? "Read" : "Unread"}
                 </span>
               </td>
               <td className="px-4 py-3 text-right">
                 <button
                   type="button"
-                  disabled={alert.status === "READ"}
+                  disabled={alert.isRead}
                   onClick={() => onMarkAsRead(alert.id)}
                   className="inline-block rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >

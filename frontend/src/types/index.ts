@@ -1,24 +1,31 @@
-export type Recommendation =
+export type PrimaryRecommendation =
+  | "STRONG_HOLD"
   | "HOLD"
-  | "BUY_MORE"
-  | "REDUCE"
-  | "EXIT"
-  | "WATCH"
+  | "WATCH_CLOSELY"
+  | "REDUCE_POSITION"
+  | "CONSIDER_EXIT"
 
-export type HealthStatus = "HEALTHY" | "STABLE" | "AT_RISK" | "CRITICAL"
+export type SecondaryRecommendation =
+  | "BOOK_PROFIT"
+  | "TIGHTEN_STOP_LOSS"
+  | "HEDGE_POSITION"
 
-export interface Position {
-  id: string
-  stockName: string
-  ticker: string
-  quantity: number
-  buyPrice: number
-  currentPrice: number
-  healthScore: number
-  healthStatus: HealthStatus
-  recommendation: Recommendation
-  confidence: number
-}
+export type Recommendation = PrimaryRecommendation | SecondaryRecommendation
+
+export type HealthStatus = "HEALTHY" | "WARNING" | "CRITICAL"
+
+export type RiskLevel = "SAFE" | "WARNING" | "CRITICAL"
+
+export type FluctuationLevel = "STABLE" | "MODERATE" | "VOLATILE"
+
+export type FearGreedLevel =
+  | "EXTREME_FEAR"
+  | "FEAR"
+  | "NEUTRAL"
+  | "GREED"
+  | "EXTREME_GREED"
+
+export type StrengthLevel = "WEAK" | "MODERATE" | "STRONG"
 
 export type Trend =
   | "STRONG_UPTREND"
@@ -28,7 +35,7 @@ export type Trend =
   | "STRONG_DOWNTREND"
 
 export interface NewPosition {
-  stockName: string
+  stockSymbol: string
   quantity: number
   buyPrice: number
   currentPrice: number
@@ -40,79 +47,78 @@ export interface NewPosition {
   roe: number
 }
 
-export interface PositionDetail {
-  id: string
-  // Position information
-  stockName: string
-  ticker: string
+export interface PositionResponse {
+  id: number
+  stockSymbol: string
   quantity: number
   buyPrice: number
   currentPrice: number
   stopLoss: number
   targetPrice: number
-  // Health analysis
+  createdAt: string
+}
+
+export interface PositionSummary {
+  id: number
+  stockSymbol: string
+  healthScore: number | null
+  primaryRecommendation: PrimaryRecommendation | null
+  confidence: number | null
+}
+
+export interface PositionDetail {
+  id: number
+  stockSymbol: string
+  quantity: number
+  buyPrice: number
+  currentPrice: number
+  stopLoss: number
+  targetPrice: number
   healthScore: number
+  healthStatus: HealthStatus
+  riskLevel: RiskLevel
+  fluctuationLevel: FluctuationLevel
   riskScore: number
   performanceScore: number
   stabilityScore: number
-  fluctuation: number
-  // Market analysis
-  marketContext: string
   fearGreedIndex: number
-  // Fundamental analysis
+  fearGreedLevel: FearGreedLevel
   eps: number
   roe: number
-  fundamentalStrength: string
-  // Recommendation
-  recommendation: Recommendation
-  secondaryRecommendations: Recommendation[]
+  fundamentalStrength: StrengthLevel
+  primaryRecommendation: PrimaryRecommendation
+  secondaryRecommendations: SecondaryRecommendation[]
   confidence: number
   rationale: string
   companyInsights: string
 }
 
-export type AlertSeverity = "INFO" | "WARNING" | "CRITICAL"
-
-export interface Alert {
-  id: string
-  ticker: string
-  message: string
-  severity: AlertSeverity
-  createdAt: string
-}
-
-export interface DigestItem {
-  ticker: string
-  stockName: string
-  summary: string
-  recommendation: Recommendation
-}
-
-export interface PortfolioDigest {
-  date: string
-  overview: string
-  totalPositions: number
-  healthyCount: number
-  atRiskCount: number
-  items: DigestItem[]
-}
-
-export type AlertStatus = "READ" | "UNREAD"
-
 export interface AlertRow {
-  id: string
-  symbol: string
-  previousRecommendation: Recommendation
-  currentRecommendation: Recommendation
+  id: number
+  stockSymbol: string
+  previousRecommendation: PrimaryRecommendation
+  currentRecommendation: PrimaryRecommendation
   message: string
-  timestamp: string
-  status: AlertStatus
+  createdAt: string
+  isRead: boolean
 }
 
-export interface DigestSummaryRow {
-  stock: string
-  ticker: string
-  healthScore: number
-  recommendation: Recommendation
-  confidence: number
+export interface PortfolioDigestResponse {
+  totalPositions: number
+  healthyPositions: number
+  watchCloselyPositions: number
+  reducePositionRecommendations: number
+  considerExitRecommendations: number
+  averageHealthScore: number
+  highestHealthPosition: string | null
+  highestHealthScore: number | null
+  lowestHealthPosition: string | null
+  lowestHealthScore: number | null
+  highestConfidencePosition: string | null
+  highestConfidenceRecommendation: PrimaryRecommendation | null
+  highestConfidence: number | null
+  lowestConfidencePosition: string | null
+  lowestConfidenceRecommendation: PrimaryRecommendation | null
+  lowestConfidence: number | null
+  unreadAlerts: number
 }

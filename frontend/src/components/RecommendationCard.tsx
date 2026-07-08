@@ -11,7 +11,7 @@ export default function RecommendationCard({
     <SectionCard title="Recommendation">
       <InfoRow
         label="Primary Recommendation"
-        value={<RecommendationBadge value={position.recommendation} />}
+        value={<RecommendationBadge value={position.primaryRecommendation} />}
       />
       <div className="flex items-center justify-between border-b border-slate-100 py-2 text-sm">
         <span className="text-slate-500">Secondary Recommendation(s)</span>
@@ -27,7 +27,7 @@ export default function RecommendationCard({
       </div>
       <InfoRow
         label="Confidence"
-        value={`${Math.round(position.confidence * 100)}%`}
+        value={`${position.confidence}%`}
       />
     </SectionCard>
   )

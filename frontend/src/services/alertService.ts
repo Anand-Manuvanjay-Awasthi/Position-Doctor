@@ -1,5 +1,5 @@
 import api from "./api"
-import type { AlertRow, AlertStatus, Recommendation } from "../types"
+import type { AlertRow, PrimaryRecommendation } from "../types"
 
 /**
  * Alert service.
@@ -9,36 +9,30 @@ import type { AlertRow, AlertStatus, Recommendation } from "../types"
  *   PATCH /api/v1/alerts/{id}/read  -> mark an alert as read
  *
  * The backend alert DTO is mapped to the `AlertRow` shape consumed by the
- * Alerts UI. Field access is defensive so common naming variations
- * (symbol/ticker, timestamp/createdAt, status/read) are all handled.
+ * Alerts UI.
  */
 
 const BASE = "/api/v1/alerts"
 
 interface AlertResponse {
-  id: string | number
-  symbol?: string
-  ticker?: string
-  previousRecommendation?: Recommendation
-  currentRecommendation?: Recommendation
-  recommendation?: Recommendation
-  message?: string
-  timestamp?: string
-  createdAt?: string
-  status?: AlertStatus
-  read?: boolean
+  id: number
+  stockSymbol: string
+  previousRecommendation: PrimaryRecommendation
+  currentRecommendation: PrimaryRecommendation
+  message: string
+  createdAt: string
+  isRead: boolean
 }
 
 function toAlertRow(a: AlertResponse): AlertRow {
   return {
-    id: String(a.id),
-    symbol: a.symbol ?? a.ticker ?? "",
-    previousRecommendation: a.previousRecommendation ?? "HOLD",
-    currentRecommendation:
-      a.currentRecommendation ?? a.recommendation ?? "HOLD",
-    message: a.message ?? "",
-    timestamp: a.timestamp ?? a.createdAt ?? new Date().toISOString(),
-    status: a.status ?? (a.read ? "READ" : "UNREAD"),
+    id: a.id,
+    stockSymbol: a.stockSymbol,
+    previousRecommendation: a.previousRecommendation,
+    currentRecommendation: a.currentRecommendation,
+    message: a.message,
+    createdAt: a.createdAt,
+    isRead: a.isRead,
   }
 }
 
@@ -47,6 +41,6 @@ export async function getAlerts(): Promise<AlertRow[]> {
   return (res.data ?? []).map(toAlertRow)
 }
 
-export async function markAlertAsRead(id: string): Promise<void> {
+export async function markAlertAsRead(id: number): Promise<void> {
   await api.patch(`${BASE}/${id}/read`)
 }

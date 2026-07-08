@@ -8,7 +8,7 @@ export default function PositionCard({
 }) {
   return (
     <SectionCard title="Position Information">
-      <InfoRow label="Stock Name" value={position.stockName} />
+      <InfoRow label="Stock Symbol" value={position.stockSymbol} />
       <InfoRow label="Quantity" value={position.quantity} />
       <InfoRow label="Buy Price" value={`$${position.buyPrice.toFixed(2)}`} />
       <InfoRow

@@ -1,4 +1,4 @@
-import type { AlertSeverity, HealthStatus, Recommendation } from "../types"
+import type { HealthStatus, Recommendation } from "../types"
 
 type Tone = "green" | "blue" | "amber" | "red" | "slate"
 
@@ -21,34 +21,26 @@ function Badge({ tone, label }: { tone: Tone; label: string }) {
 }
 
 const recommendationTone: Record<Recommendation, Tone> = {
-  BUY_MORE: "green",
+  STRONG_HOLD: "green",
   HOLD: "blue",
-  WATCH: "slate",
-  REDUCE: "amber",
-  EXIT: "red",
+  WATCH_CLOSELY: "slate",
+  REDUCE_POSITION: "amber",
+  CONSIDER_EXIT: "red",
+  BOOK_PROFIT: "green",
+  TIGHTEN_STOP_LOSS: "amber",
+  HEDGE_POSITION: "slate",
 }
 
 const healthTone: Record<HealthStatus, Tone> = {
   HEALTHY: "green",
-  STABLE: "blue",
-  AT_RISK: "amber",
-  CRITICAL: "red",
-}
-
-const severityTone: Record<AlertSeverity, Tone> = {
-  INFO: "blue",
   WARNING: "amber",
   CRITICAL: "red",
 }
 
 export function RecommendationBadge({ value }: { value: Recommendation }) {
-  return <Badge tone={recommendationTone[value]} label={value.replace("_", " ")} />
+  return <Badge tone={recommendationTone[value]} label={value.replace(/_/g, " ")} />
 }
 
 export function HealthBadge({ value }: { value: HealthStatus }) {
-  return <Badge tone={healthTone[value]} label={value.replace("_", " ")} />
-}
-
-export function SeverityBadge({ value }: { value: AlertSeverity }) {
-  return <Badge tone={severityTone[value]} label={value} />
+  return <Badge tone={healthTone[value]} label={value.replace(/_/g, " ")} />
 }

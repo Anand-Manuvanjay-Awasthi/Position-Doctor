@@ -1,11 +1,18 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import DigestCard from "../components/DigestCard"
-import SummaryTable from "../components/SummaryTable"
 import { getDigest } from "../services/digestService"
-import type { DigestSummaryRow } from "../types"
+import type { PortfolioDigestResponse } from "../types"
+
+function formatScore(score: number | null) {
+  return score === null ? "N/A" : score
+}
+
+function formatRecommendation(recommendation: string | null) {
+  return recommendation === null ? "N/A" : recommendation.replace(/_/g, " ")
+}
 
 export default function DigestPage() {
-  const [rows, setRows] = useState<DigestSummaryRow[]>([])
+  const [digest, setDigest] = useState<PortfolioDigestResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -16,7 +23,7 @@ export default function DigestPage() {
 
     getDigest()
       .then((data) => {
-        if (active) setRows(data)
+        if (active) setDigest(data)
       })
       .catch(() => {
         if (active) setError("Unable to load the digest. Please try again later.")
@@ -30,58 +37,96 @@ export default function DigestPage() {
     }
   }, [])
 
-  const stats = useMemo(() => {
-    const scores = rows.map((r) => r.healthScore)
-    const total = rows.length
-    const average = total
-      ? Math.round(scores.reduce((sum, s) => sum + s, 0) / total)
-      : 0
-    return {
-      total,
-      healthy: rows.filter((r) => r.healthScore >= 75).length,
-      watch: rows.filter((r) => r.recommendation === "WATCH").length,
-      reduce: rows.filter((r) => r.recommendation === "REDUCE").length,
-      exit: rows.filter((r) => r.recommendation === "EXIT").length,
-      average,
-      highest: total ? Math.max(...scores) : 0,
-      lowest: total ? Math.min(...scores) : 0,
-    }
-  }, [rows])
-
   return (
     <section>
       <h1 className="mb-1 text-2xl font-bold text-slate-900">
         Daily Portfolio Digest
       </h1>
       <p className="mb-6 text-sm text-slate-500">
-        A summary of your portfolio health and today&apos;s key recommendations.
+        A summary of your portfolio health and current recommendations.
       </p>
 
       {loading && <p className="text-sm text-slate-500">Loading digest...</p>}
       {error && <p className="text-sm text-red-600">{error}</p>}
-      {!loading && !error && rows.length === 0 && (
+      {!loading && !error && !digest && (
         <p className="text-sm text-slate-500">
           No digest data available right now.
         </p>
       )}
 
-      {!loading && !error && rows.length > 0 && (
+      {!loading && !error && digest && (
         <>
           <div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <DigestCard label="Total Positions" value={stats.total} />
-            <DigestCard label="Healthy Positions" value={stats.healthy} tone="green" />
-            <DigestCard label="Watch Closely" value={stats.watch} tone="slate" />
-            <DigestCard label="Reduce Position" value={stats.reduce} tone="amber" />
-            <DigestCard label="Consider Exit" value={stats.exit} tone="red" />
-            <DigestCard label="Average Health Score" value={stats.average} />
-            <DigestCard label="Highest Health Score" value={stats.highest} tone="green" />
-            <DigestCard label="Lowest Health Score" value={stats.lowest} tone="red" />
+            <DigestCard label="Total Positions" value={digest.totalPositions} />
+            <DigestCard
+              label="Healthy Positions"
+              value={digest.healthyPositions}
+              tone="green"
+            />
+            <DigestCard
+              label="Watch Closely"
+              value={digest.watchCloselyPositions}
+              tone="slate"
+            />
+            <DigestCard
+              label="Reduce Position"
+              value={digest.reducePositionRecommendations}
+              tone="amber"
+            />
+            <DigestCard
+              label="Consider Exit"
+              value={digest.considerExitRecommendations}
+              tone="red"
+            />
+            <DigestCard
+              label="Average Health Score"
+              value={Math.round(digest.averageHealthScore)}
+            />
+            <DigestCard
+              label="Unread Alerts"
+              value={digest.unreadAlerts}
+              tone="amber"
+            />
           </div>
 
-          <h2 className="mb-3 text-lg font-semibold text-slate-900">
-            Portfolio Summary
-          </h2>
-          <SummaryTable rows={rows} />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <DigestCard
+              label={`Highest Health: ${digest.highestHealthPosition ?? "N/A"}`}
+              value={formatScore(digest.highestHealthScore)}
+              tone="green"
+            />
+            <DigestCard
+              label={`Lowest Health: ${digest.lowestHealthPosition ?? "N/A"}`}
+              value={formatScore(digest.lowestHealthScore)}
+              tone="red"
+            />
+            <DigestCard
+              label={`Highest Confidence: ${digest.highestConfidencePosition ?? "N/A"}`}
+              value={
+                digest.highestConfidence === null
+                  ? "N/A"
+                  : `${digest.highestConfidence}%`
+              }
+              tone="green"
+            />
+            <DigestCard
+              label={formatRecommendation(digest.highestConfidenceRecommendation)}
+              value="Top Signal"
+            />
+            <DigestCard
+              label={`Lowest Confidence: ${digest.lowestConfidencePosition ?? "N/A"}`}
+              value={
+                digest.lowestConfidence === null
+                  ? "N/A"
+                  : `${digest.lowestConfidence}%`
+              }
+              tone="red"
+            />
+            <DigestCard
+              label={formatRecommendation(digest.lowestConfidenceRecommendation)}
+              value="Lowest Signal"
+            />
+          </div>
         </>
       )}
     </section>

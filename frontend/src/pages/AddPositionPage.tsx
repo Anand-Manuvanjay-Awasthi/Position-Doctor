@@ -4,7 +4,7 @@ import { createPosition } from "../services/positionService"
 import type { NewPosition, Trend } from "../types"
 
 const emptyForm: NewPosition = {
-  stockName: "",
+  stockSymbol: "",
   quantity: 0,
   buyPrice: 0,
   currentPrice: 0,
@@ -41,8 +41,8 @@ type Errors = Partial<Record<keyof NewPosition, string>>
 function validate(form: NewPosition): Errors {
   const errors: Errors = {}
 
-  if (!form.stockName.trim()) {
-    errors.stockName = "Stock name is required."
+  if (!form.stockSymbol.trim()) {
+    errors.stockSymbol = "Stock symbol is required."
   }
   if (form.quantity <= 0) {
     errors.quantity = "Quantity must be greater than 0."
@@ -103,7 +103,7 @@ export default function AddPositionPage() {
       <section className="max-w-2xl">
         <div className="rounded-lg border border-green-200 bg-green-50 p-5">
           <p className="text-sm font-medium text-green-800">
-            Position for {form.stockName} was captured.
+            Position for {form.stockSymbol} was captured.
           </p>
           <div className="mt-4 flex gap-3">
             <button
@@ -130,7 +130,7 @@ export default function AddPositionPage() {
     <section className="max-w-2xl">
       <h1 className="mb-1 text-2xl font-bold text-slate-900">Add Position</h1>
       <p className="mb-6 text-sm text-slate-500">
-        Enter a new position to track. This demo does not persist data.
+        Enter a new position to track.
       </p>
 
       <form
@@ -141,17 +141,17 @@ export default function AddPositionPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <label className="block text-sm sm:col-span-2">
             <span className="mb-1 block font-medium text-slate-700">
-              Stock Name
+              Stock Symbol
             </span>
             <input
               type="text"
-              value={form.stockName}
-              onChange={(e) => update("stockName", e.target.value)}
+              value={form.stockSymbol}
+              onChange={(e) => update("stockSymbol", e.target.value.toUpperCase())}
               className={inputClass}
             />
-            {errors.stockName && (
+            {errors.stockSymbol && (
               <span className="mt-1 block text-xs text-red-600">
-                {errors.stockName}
+                {errors.stockSymbol}
               </span>
             )}
           </label>

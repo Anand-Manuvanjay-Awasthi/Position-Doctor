@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom"
-import type { Position } from "../types"
+import type { PositionSummary } from "../types"
 import { RecommendationBadge } from "./Badge"
 
 interface Props {
-  positions: Position[]
+  positions: PositionSummary[]
 }
 
-function scoreColor(score: number) {
+function scoreColor(score: number | null) {
+  if (score === null) return "text-slate-500"
   if (score >= 75) return "text-green-700"
   if (score >= 50) return "text-amber-700"
   return "text-red-700"
@@ -30,19 +31,28 @@ export default function PositionTable({ positions }: Props) {
             <tr key={position.id} className="hover:bg-slate-50">
               <td className="px-4 py-3">
                 <div className="font-medium text-slate-900">
-                  {position.stockName}
+                  {position.stockSymbol}
                 </div>
-                <div className="text-xs text-slate-500">{position.ticker}</div>
               </td>
               <td className={`px-4 py-3 font-semibold ${scoreColor(position.healthScore)}`}>
-                {position.healthScore}
-                <span className="text-slate-400">/100</span>
+                {position.healthScore === null ? (
+                  "N/A"
+                ) : (
+                  <>
+                    {position.healthScore}
+                    <span className="text-slate-400">/100</span>
+                  </>
+                )}
               </td>
               <td className="px-4 py-3">
-                <RecommendationBadge value={position.recommendation} />
+                {position.primaryRecommendation ? (
+                  <RecommendationBadge value={position.primaryRecommendation} />
+                ) : (
+                  <span className="text-slate-500">N/A</span>
+                )}
               </td>
               <td className="px-4 py-3 text-slate-700">
-                {Math.round(position.confidence * 100)}%
+                {position.confidence === null ? "N/A" : `${position.confidence}%`}
               </td>
               <td className="px-4 py-3 text-right">
                 <Link

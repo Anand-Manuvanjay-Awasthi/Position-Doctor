@@ -10,7 +10,7 @@ export default function MainLayout() {
       </main>
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 py-4 text-sm text-slate-500">
-          Position Doctor &mdash; hackathon demo. Data shown is illustrative.
+          Position Doctor &mdash; hackathon demo.
         </div>
       </footer>
     </div>

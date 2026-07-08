@@ -1,8 +1,8 @@
 # Position Doctor - Frontend
 
 React frontend for the **Position Doctor** hackathon project. It monitors
-investment positions and surfaces intelligent recommendations. This app ships
-with dummy data and is **not** wired to the backend yet.
+investment positions and surfaces portfolio health, recommendations, alerts,
+and digest data from the Spring Boot backend.
 
 ## Tech Stack
 
@@ -10,7 +10,7 @@ with dummy data and is **not** wired to the backend yet.
 - Vite
 - Tailwind CSS
 - React Router DOM
-- Axios (pre-configured client, ready for backend integration)
+- Axios service layer
 
 ## Getting Started
 
@@ -37,7 +37,7 @@ src/
   hooks/         # data-loading hooks (useAsync, usePortfolio)
   layouts/       # shared page layout with navbar + footer
   pages/         # route pages (Landing, Portfolio, Add, Alerts, Digest)
-  services/      # axios client + dummy data service
+  services/      # axios client + backend service functions
   types/         # shared TypeScript types
 ```
 
@@ -51,8 +51,11 @@ src/
 | `/alerts`       | Alerts        |
 | `/digest`       | Daily Digest  |
 
-## Connecting the Backend
+## Backend Connection
 
-Data currently comes from `src/services/positionService.ts` as dummy data.
-Each function has a commented example showing the equivalent Axios call. Set
-`VITE_API_BASE_URL` in a `.env` file to point at the Spring Boot API.
+Set `VITE_API_BASE_URL` in a `.env` file to point at the Spring Boot API.
+For local development:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8080
+```
