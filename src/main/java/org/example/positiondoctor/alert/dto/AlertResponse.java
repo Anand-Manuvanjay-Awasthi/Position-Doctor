@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @Builder
 public class AlertResponse {
 
+    Long id;
+
     String stockSymbol;
 
     PrimaryRecommendation previousRecommendation;

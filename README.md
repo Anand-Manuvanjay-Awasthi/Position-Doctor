@@ -1,6 +1,6 @@
-# Position Doctor Backend
+# Position Doctor
 
-Position Doctor is a Spring Boot backend for tracking stock positions, evaluating their health, and turning that evaluation into clear portfolio signals.
+Position Doctor is a full-stack hackathon project for tracking stock positions, evaluating their health, and turning that evaluation into clear portfolio signals.
 
 This backend is intentionally built as a set of small domain modules. Each module answers one question:
 
@@ -35,7 +35,7 @@ The project is still hackathon-sized, but the backend is organized as if a small
 - [Running The Application](#running-the-application)
 - [Useful Test Sequence](#useful-test-sequence)
 - [Design Notes](#design-notes)
-- [Known Local Setup Issue](#known-local-setup-issue)
+- [JAVA_HOME Troubleshooting](#java_home-troubleshooting)
 - [Future Work](#future-work)
 
 ---
@@ -163,25 +163,49 @@ Digest summarizes persisted state.
 
 ## Technology Stack
 
-| Tool | Purpose |
-|---|---|
-| Java 17 | Application language |
-| Spring Boot 4.1.0 | Backend framework |
-| Spring Web MVC | REST APIs |
-| Spring Data JPA | Persistence |
-| PostgreSQL | Database |
-| Hibernate | ORM |
-| Jakarta Validation | Request/entity validation |
-| Lombok | Boilerplate reduction |
-| Maven Wrapper | Build entry point |
+### Backend
 
-Current Maven dependencies are intentionally small:
+| Tool | Version / Detail | Purpose |
+|---|---|---|
+| Java | 17 | Backend language and runtime |
+| Spring Boot | 4.1.0 | Application framework |
+| Spring Web MVC | `spring-boot-starter-webmvc` | REST API layer |
+| Spring Data JPA | `spring-boot-starter-data-jpa` | Repository and persistence abstraction |
+| Hibernate | Managed by Spring Boot | ORM for PostgreSQL tables |
+| PostgreSQL Driver | `org.postgresql:postgresql` | JDBC driver |
+| Jakarta Validation | `spring-boot-starter-validation` | Bean validation for request DTOs and entities |
+| Lombok | `org.projectlombok:lombok` | Reduces DTO/entity/service boilerplate |
+| Maven Wrapper | `mvnw`, `mvnw.cmd` | Reproducible backend build without installing Maven globally |
+
+Backend Maven dependencies are intentionally small:
 
 - `spring-boot-starter-webmvc`
 - `spring-boot-starter-data-jpa`
 - `spring-boot-starter-validation`
 - `postgresql`
 - `lombok`
+
+### Frontend
+
+| Tool | Version / Detail | Purpose |
+|---|---|---|
+| React | 19.x | UI framework |
+| React DOM | 19.x | Browser rendering |
+| React Router DOM | 7.x | Client-side routing |
+| TypeScript | 5.7.x | Static typing |
+| Vite | 6.x | Dev server and production build |
+| Axios | 1.7.x | HTTP client for backend APIs |
+| Tailwind CSS | 3.4.x | Utility-first styling |
+| PostCSS / Autoprefixer | 8.x / 10.x | CSS processing |
+| npm | Comes with Node.js | Frontend dependency and script runner |
+
+Frontend scripts:
+
+```bash
+npm run dev      # start Vite dev server
+npm run build    # TypeScript check + production build
+npm run preview  # preview production build
+```
 
 ---
 
@@ -683,10 +707,12 @@ http://localhost:8080
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/positions` | Create a position |
-| GET | `/positions` | Get all positions |
-| GET | `/positions/{id}` | Get one position |
-| DELETE | `/positions/{id}` | Delete one position |
+| POST | `/api/v1/positions` | Create a position from the full frontend form |
+| GET | `/api/v1/positions` | Get stored position records |
+| GET | `/api/v1/positions/summaries` | Get portfolio table summaries |
+| GET | `/api/v1/positions/{id}` | Get one stored position record |
+| GET | `/api/v1/positions/{id}/details` | Get frontend-ready position details |
+| DELETE | `/api/v1/positions/{id}` | Delete one position |
 
 Example request:
 
@@ -697,7 +723,11 @@ Example request:
   "buyPrice": 100.00,
   "currentPrice": 120.00,
   "targetPrice": 130.00,
-  "stopLoss": 95.00
+  "stopLoss": 95.00,
+  "trend": "UPTREND",
+  "fearGreedIndex": 42,
+  "eps": 6.12,
+  "roe": 28.40
 }
 ```
 
@@ -954,49 +984,100 @@ Important behavior:
 
 ## Local Setup
 
-### Prerequisites
-
-- JDK 17
-- PostgreSQL
-- pgAdmin or another PostgreSQL client
-- IntelliJ IDEA or any Java IDE
-- Maven Wrapper from this repository
-
-### Required environment variables
-
-```powershell
-$env:DB_USERNAME="postgres"
-$env:DB_PASSWORD="your_postgres_password"
-```
-
-Optional:
-
-```powershell
-$env:DB_URL="jdbc:postgresql://localhost:5432/position_doctor"
-```
-
-If `DB_URL` is not set, the app uses:
+This repository contains both the Spring Boot backend and the React frontend.
 
 ```text
-jdbc:postgresql://localhost:5432/position_doctor
+Position-Doctor/
+├── src/          # Spring Boot backend
+├── frontend/     # React + Vite frontend
+├── pom.xml       # Backend Maven project
+├── mvnw.cmd      # Maven wrapper for Windows
+└── mvnw          # Maven wrapper for macOS/Linux
 ```
+
+### Prerequisites
+
+Install these before running the project:
+
+| Requirement | Recommended Version | Used For |
+|---|---:|---|
+| JDK | 17 | Running and building the Spring Boot backend |
+| Node.js | 20 LTS or newer | Running the React frontend |
+| npm | Bundled with Node.js | Installing frontend packages |
+| PostgreSQL | 14 or newer | Application database |
+| pgAdmin | Optional | GUI for managing PostgreSQL |
+| Git | Latest stable | Cloning and working with the repository |
+
+Maven does not need to be installed globally. Use the Maven wrapper already included in the project.
+
+### Verify local tools
+
+From a terminal:
+
+```powershell
+java -version
+javac -version
+node -v
+npm -v
+```
+
+Java must report version `17`. If `java` or `javac` is not found, fix `JAVA_HOME` before running the backend.
+
+### Clone and open the project
+
+```powershell
+git clone <repository-url>
+cd Position-Doctor
+```
+
+Open `D:\Projects\Position-Doctor` or your cloned folder in IntelliJ IDEA, VS Code, or your preferred editor.
 
 ---
 
 ## PostgreSQL Setup
 
+The backend expects a PostgreSQL database named `position_doctor` by default.
+
+### Option 1: pgAdmin
+
 1. Start PostgreSQL.
 2. Open pgAdmin.
-3. Connect to local PostgreSQL.
-4. Create a database:
+3. Connect to your local PostgreSQL server.
+4. Right-click `Databases`.
+5. Select `Create` -> `Database`.
+6. Use this database name:
 
 ```text
 position_doctor
 ```
 
-5. Make sure your application has credentials for the database.
+7. Save the database.
 
-Default configuration:
+### Option 2: psql
+
+```sql
+CREATE DATABASE position_doctor;
+```
+
+### Backend database configuration
+
+The backend reads database settings from environment variables:
+
+| Variable | Required | Default |
+|---|---|---|
+| `DB_URL` | No | `jdbc:postgresql://localhost:5432/position_doctor` |
+| `DB_USERNAME` | No | `postgres` |
+| `DB_PASSWORD` | Yes, unless your local postgres user has no password | empty |
+
+Set them in PowerShell before running the backend:
+
+```powershell
+$env:DB_URL="jdbc:postgresql://localhost:5432/position_doctor"
+$env:DB_USERNAME="postgres"
+$env:DB_PASSWORD="your_postgres_password"
+```
+
+The matching Spring Boot configuration is:
 
 ```properties
 spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/position_doctor}
@@ -1005,9 +1086,21 @@ spring.datasource.password=${DB_PASSWORD:}
 spring.datasource.driver-class-name=org.postgresql.Driver
 ```
 
+For local development, Hibernate is configured with:
+
+```properties
+spring.jpa.hibernate.ddl-auto=update
+```
+
+That means the backend creates or updates tables automatically when the app starts.
+
 ---
 
 ## Running The Application
+
+Run the backend and frontend in two separate terminals.
+
+### 1. Start the backend
 
 From the project root:
 
@@ -1015,13 +1108,17 @@ From the project root:
 .\mvnw.cmd spring-boot:run
 ```
 
-Or run:
+On macOS/Linux:
+
+```bash
+./mvnw spring-boot:run
+```
+
+You can also run this class from IntelliJ:
 
 ```text
 PositionDoctorApplication
 ```
-
-from IntelliJ.
 
 The backend starts on:
 
@@ -1029,17 +1126,81 @@ The backend starts on:
 http://localhost:8080
 ```
 
+Backend build/test command:
+
+```powershell
+.\mvnw.cmd test
+```
+
+### 2. Configure the frontend API URL
+
+Create or update this file:
+
+```text
+frontend/.env
+```
+
+Use:
+
+```env
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+### 3. Start the frontend
+
+Open a second terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend starts on:
+
+```text
+http://localhost:5173
+```
+
+Frontend production build command:
+
+```powershell
+npm run build
+```
+
+If PowerShell blocks `npm` with an execution policy error, use:
+
+```powershell
+npm.cmd run build
+npm.cmd run dev
+```
+
+### 4. Local app URLs
+
+| App | URL |
+|---|---|
+| Backend API | `http://localhost:8080` |
+| Frontend | `http://localhost:5173` |
+| Add Position page | `http://localhost:5173/add-position` |
+| Portfolio page | `http://localhost:5173/portfolio` |
+| Alerts page | `http://localhost:5173/alerts` |
+| Daily Digest page | `http://localhost:5173/digest` |
+
 ---
 
 ## Useful Test Sequence
 
-This order gives the Recommendation and Digest modules enough data to work with.
+This sequence matches the current frontend flow. The Add Position form sends one request, and the backend facade orchestrates position creation, market context, fundamentals, health scoring, recommendation generation, and health snapshot persistence.
 
-### 1. Create a position
+### 1. Create a position from the frontend
 
-```http
-POST /positions
+Open:
+
+```text
+http://localhost:5173/add-position
 ```
+
+Submit the form with values such as:
 
 ```json
 {
@@ -1048,62 +1209,90 @@ POST /positions
   "buyPrice": 100.00,
   "currentPrice": 120.00,
   "targetPrice": 130.00,
-  "stopLoss": 95.00
-}
-```
-
-### 2. Store market context
-
-```http
-POST /api/v1/market-context/fear-greed
-```
-
-```json
-{
-  "fearGreedIndex": 42
-}
-```
-
-### 3. Store fundamentals
-
-```http
-POST /api/v1/fundamentals
-```
-
-```json
-{
-  "stockSymbol": "AAPL",
+  "stopLoss": 95.00,
+  "trend": "UPTREND",
+  "fearGreedIndex": 42,
   "eps": 6.12,
   "roe": 28.40
 }
 ```
 
-### 4. Generate recommendation
+Equivalent API call:
 
 ```http
-GET /api/v1/recommendations/1
+POST /api/v1/positions
 ```
 
-### 5. Trigger health snapshot manually
+Supported `trend` values:
+
+```text
+STRONG_UPTREND
+UPTREND
+SIDEWAYS
+DOWNTREND
+STRONG_DOWNTREND
+```
+
+### 2. Open the portfolio
+
+```text
+http://localhost:5173/portfolio
+```
+
+Backend endpoint used by the frontend:
 
 ```http
-GET /api/v1/health/1
+GET /api/v1/positions/summaries
 ```
 
-The realtime scheduler will also create snapshots automatically every 2 minutes.
+### 3. Open position details
 
-### 6. Read digest
+Click `View Details` in the portfolio table.
+
+Backend endpoint used by the frontend:
+
+```http
+GET /api/v1/positions/{id}/details
+```
+
+### 4. Open the daily digest
+
+```text
+http://localhost:5173/digest
+```
+
+Backend endpoint:
 
 ```http
 GET /api/v1/digest
 ```
 
-### 7. Read alerts
+### 5. Open alerts
+
+```text
+http://localhost:5173/alerts
+```
+
+Backend endpoints:
 
 ```http
 GET /api/v1/alerts
 GET /api/v1/alerts/unread
 PATCH /api/v1/alerts/1/read
+```
+
+### 6. Optional direct backend checks
+
+These endpoints are still useful for manual backend testing:
+
+```http
+GET  /api/v1/health/{positionId}
+POST /api/v1/health/evaluate
+POST /api/v1/market-context/fear-greed
+GET  /api/v1/market-context/latest
+POST /api/v1/fundamentals
+GET  /api/v1/fundamentals/{stockSymbol}
+GET  /api/v1/recommendations/{positionId}
 ```
 
 ---
@@ -1132,25 +1321,45 @@ The backend records that something important changed. Delivery channels can be a
 
 ---
 
-## Known Local Setup Issue
+## JAVA_HOME Troubleshooting
 
-The Maven wrapper has been unable to compile in this environment because `JAVA_HOME` is not configured correctly:
+If the Maven wrapper prints this error:
 
 ```text
 The JAVA_HOME environment variable is not defined correctly
 ```
 
-Fix on Windows:
+Install JDK 17, then point `JAVA_HOME` to the JDK folder.
+
+Example Windows PowerShell session:
 
 ```powershell
 $env:JAVA_HOME="C:\Program Files\Java\jdk-17"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
 ```
 
-Then verify:
+Permanent Windows setup:
+
+1. Open `Edit the system environment variables`.
+2. Open `Environment Variables`.
+3. Add or update `JAVA_HOME`.
+4. Set it to your JDK 17 folder, for example:
+
+```text
+C:\Program Files\Java\jdk-17
+```
+
+5. Add this to `Path` if it is not already present:
+
+```text
+%JAVA_HOME%\bin
+```
+
+6. Open a new terminal and verify:
 
 ```powershell
 java -version
+javac -version
 .\mvnw.cmd -v
 ```
 

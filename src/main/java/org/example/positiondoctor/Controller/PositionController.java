@@ -3,7 +3,9 @@ package org.example.positiondoctor.Controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.positiondoctor.DTO.CreatePositionRequest;
+import org.example.positiondoctor.DTO.PositionDetailResponse;
 import org.example.positiondoctor.DTO.PositionResponse;
+import org.example.positiondoctor.DTO.PositionSummaryResponse;
 import org.example.positiondoctor.Service.PositionFacadeService;
 import org.example.positiondoctor.Service.PositionService;
 import org.springframework.http.HttpStatus;
@@ -37,9 +39,19 @@ public class PositionController {
         return ResponseEntity.ok(positionService.getAllPositions());
     }
 
+    @GetMapping("/summaries")
+    public ResponseEntity<List<PositionSummaryResponse>> getPositionSummaries() {
+        return ResponseEntity.ok(positionFacadeService.getPositionSummaries());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PositionResponse> getPositionById(@PathVariable Long id) {
         return ResponseEntity.ok(positionService.getPositionById(id));
+    }
+
+    @GetMapping("/{id}/details")
+    public ResponseEntity<PositionDetailResponse> getPositionDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(positionFacadeService.getPositionDetail(id));
     }
 
     @DeleteMapping("/{id}")

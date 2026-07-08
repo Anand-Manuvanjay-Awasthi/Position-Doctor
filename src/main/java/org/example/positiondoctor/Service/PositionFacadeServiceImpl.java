@@ -2,14 +2,19 @@ package org.example.positiondoctor.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.positiondoctor.DTO.CreatePositionRequest;
+import org.example.positiondoctor.DTO.PositionDetailResponse;
 import org.example.positiondoctor.DTO.PositionRequest;
 import org.example.positiondoctor.DTO.PositionResponse;
+import org.example.positiondoctor.DTO.PositionSummaryResponse;
+import org.example.positiondoctor.Repository.PositionRepository;
 import org.example.positiondoctor.entities.Position;
+import org.example.positiondoctor.exception.PositionNotFoundException;
 import org.example.positiondoctor.fundamentalStrengthLayer.dto.FundamentalMetricsRequest;
 import org.example.positiondoctor.fundamentalStrengthLayer.dto.FundamentalStrengthReport;
 import org.example.positiondoctor.fundamentalStrengthLayer.service.FundamentalStrengthService;
 import org.example.positiondoctor.health.dto.PositionHealthReport;
 import org.example.positiondoctor.health.dto.PositionHealthRequest;
+import org.example.positiondoctor.health.history.dto.PositionHealthSnapshotResponse;
 import org.example.positiondoctor.health.history.service.HealthHistoryService;
 import org.example.positiondoctor.health.mapper.PositionHealthRequestMapper;
 import org.example.positiondoctor.health.service.HealthScoreService;
@@ -17,11 +22,14 @@ import org.example.positiondoctor.marketcontext.dto.FearGreedIndexRequest;
 import org.example.positiondoctor.marketcontext.dto.MarketContextReport;
 import org.example.positiondoctor.marketcontext.service.MarketContextService;
 import org.example.positiondoctor.recommendation.dto.RecommendationResponse;
+import org.example.positiondoctor.recommendation.enums.PrimaryRecommendation;
 import org.example.positiondoctor.recommendation.service.RecommendationEngineService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +37,7 @@ import java.util.Objects;
 public class PositionFacadeServiceImpl implements PositionFacadeService {
 
     private final PositionService positionService;
+    private final PositionRepository positionRepository;
     private final MarketContextService marketContextService;
     private final FundamentalStrengthService fundamentalStrengthService;
     private final HealthScoreService healthScoreService;
@@ -57,6 +66,40 @@ public class PositionFacadeServiceImpl implements PositionFacadeService {
         return positionResponse;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<PositionSummaryResponse> getPositionSummaries() {
+        return positionRepository.findByActiveTrueOrActiveIsNull()
+                .stream()
+                .map(this::toSummaryResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PositionDetailResponse getPositionDetail(Long id) {
+        Position position = positionRepository.findById(id)
+                .orElseThrow(() -> new PositionNotFoundException(id));
+
+        PositionHealthReport healthReport = healthScoreService.evaluate(position);
+        MarketContextReport marketContextReport = marketContextService.getLatestMarketContext();
+        FundamentalStrengthReport fundamentalStrengthReport = fundamentalStrengthService.evaluate(position.getStockSymbol());
+        RecommendationResponse recommendation = recommendationEngineService.evaluate(
+                position,
+                healthReport,
+                marketContextReport,
+                fundamentalStrengthReport
+        );
+
+        return toDetailResponse(
+                position,
+                healthReport,
+                marketContextReport,
+                fundamentalStrengthReport,
+                recommendation
+        );
+    }
+
     private PositionRequest toPositionRequest(CreatePositionRequest request) {
         return PositionRequest.builder()
                 .stockSymbol(request.getStockSymbol())
@@ -66,6 +109,35 @@ public class PositionFacadeServiceImpl implements PositionFacadeService {
                 .targetPrice(request.getTargetPrice())
                 .stopLoss(request.getStopLoss())
                 .build();
+    }
+
+    private PositionSummaryResponse toSummaryResponse(Position position) {
+        Optional<PositionHealthSnapshotResponse> latestSnapshot = healthHistoryService.findLatestSnapshot(position.getId());
+
+        return PositionSummaryResponse.builder()
+                .id(position.getId())
+                .stockSymbol(position.getStockSymbol())
+                .healthScore(latestSnapshot.map(PositionHealthSnapshotResponse::getHealthScore).orElse(null))
+                .primaryRecommendation(latestSnapshot
+                        .map(PositionHealthSnapshotResponse::getPrimaryRecommendation)
+                        .flatMap(this::parsePrimaryRecommendation)
+                        .orElse(null))
+                .confidence(latestSnapshot
+                        .map(PositionHealthSnapshotResponse::getRecommendationConfidence)
+                        .orElse(null))
+                .build();
+    }
+
+    private Optional<PrimaryRecommendation> parsePrimaryRecommendation(String primaryRecommendation) {
+        if (primaryRecommendation == null || primaryRecommendation.isBlank()) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(PrimaryRecommendation.valueOf(primaryRecommendation));
+        } catch (IllegalArgumentException exception) {
+            return Optional.empty();
+        }
     }
 
     private MarketContextReport recordMarketContext(CreatePositionRequest request) {
@@ -110,6 +182,41 @@ public class PositionFacadeServiceImpl implements PositionFacadeService {
                 recommendation.getPrimaryRecommendation().name(),
                 recommendation.getConfidence()
         );
+    }
+
+    private PositionDetailResponse toDetailResponse(
+            Position position,
+            PositionHealthReport healthReport,
+            MarketContextReport marketContextReport,
+            FundamentalStrengthReport fundamentalStrengthReport,
+            RecommendationResponse recommendation
+    ) {
+        return PositionDetailResponse.builder()
+                .id(position.getId())
+                .stockSymbol(position.getStockSymbol())
+                .quantity(position.getQuantity())
+                .buyPrice(position.getBuyPrice())
+                .currentPrice(position.getCurrentPrice())
+                .stopLoss(position.getStopLoss())
+                .targetPrice(position.getTargetPrice())
+                .healthScore(healthReport.getHealthScore())
+                .healthStatus(healthReport.getHealthStatus())
+                .riskLevel(healthReport.getRiskLevel())
+                .fluctuationLevel(healthReport.getFluctuationLevel())
+                .riskScore(healthReport.getRiskScore())
+                .performanceScore(healthReport.getPerformanceScore())
+                .stabilityScore(healthReport.getStabilityScore())
+                .fearGreedIndex(marketContextReport.getFearGreedIndex())
+                .fearGreedLevel(marketContextReport.getFearGreedLevel())
+                .eps(fundamentalStrengthReport.getEps())
+                .roe(fundamentalStrengthReport.getRoe())
+                .fundamentalStrength(fundamentalStrengthReport.getStrengthLevel())
+                .primaryRecommendation(recommendation.getPrimaryRecommendation())
+                .secondaryRecommendations(recommendation.getSecondaryRecommendations())
+                .confidence(recommendation.getConfidence())
+                .rationale(recommendation.getRationale())
+                .companyInsights(recommendation.getExplanation().getCompanyInsights())
+                .build();
     }
 
     private Position toPosition(PositionResponse response) {

@@ -9,6 +9,7 @@ public class AlertMapper {
 
     public AlertResponse toResponse(Alert alert) {
         return AlertResponse.builder()
+                .id(alert.getId())
                 .stockSymbol(alert.getStockSymbol())
                 .previousRecommendation(alert.getPreviousRecommendation())
                 .currentRecommendation(alert.getCurrentRecommendation())
